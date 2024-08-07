@@ -1,19 +1,22 @@
 #include "DFRobot_MICS.h"
-#include <WiFi.h>
-#include <HTTPClient.h>
-#include <NTPClient.h>
-#include <WiFiUdp.h>
-#include <Wire.h>
-#include <TimeLib.h>
-#define CALIBRATION_TIME   1
+#define CALIBRATION_TIME   3
 #define ADC_PIN   A0
 #define POWER_PIN 2
 #define FORCE_SENSOR_PIN A7 
 
-// NTP
-WiFiUDP ntpUDP;
-NTPClient timeClient(ntpUDP, "pool.ntp.org");
-
+#include <Wire.h>
+//fire
+#include <WiFi.h>
+#include <HTTPClient.h>
+#include <NTPClient.h>
+#include <WiFiUdp.h>
+const char* ssid = "mate40pro";     
+const char* password = "88888888"; 
+// Firestore API 
+const char* projectID = "fir-flutter-codelab-a80ae"; //Project ID
+const char* collection = "Helmet-data-uno"; // Collection name
+unsigned long previousMillis = 0;  // 上次上传数据的时间
+const long interval = 10000;       // 10秒钟的间隔
 
 
 DFRobot_MICS_ADC mics(/*adcPin*/ADC_PIN, /*powerPin*/POWER_PIN);
@@ -29,28 +32,12 @@ float xFiltered = 0;
 float yFiltered = 0;
 float zFiltered = 0;
 
-const char* ssid = "mate40pro";     
-const char* password = "88888888"; 
-
-// Firestore API 
-const char* projectID = "fir-flutter-codelab-a80ae"; //Project ID
-const char* collection = "Helmet-data-3in1"; // Collection name
-
-unsigned long previousMillis = 0;  // 上次上传数据的时间
-const long interval = 10000;       // 10秒钟的间隔
-
-float gasdataC2H5OH = 0;
-float gasdataCO = 0;
-float gasdataCH4 = 0;
-
-float magnitude = 0;
 bool Wear= false;
 
 
 void setup() 
 {
   Serial.begin(115200);
-
   while(!Serial);
   while(!mics.begin()){
     Serial.println("NO Deivces !");
@@ -63,32 +50,34 @@ void setup()
   }else{
     Serial.println("The sensor is wake up mode");
   }
-  while(!mics.warmUpTime(CALIBRATION_TIME)){
-    Serial.println("Please wait until the warm-up time is over!");
-    delay(1000);
-  }
+
+  // while(!mics.warmUpTime(CALIBRATION_TIME)){
+  //   Serial.println("Please wait until the warm-up time is over!");
+  //   delay(1000);
+  // }
 
     // Initialize sensor
   xFiltered = analogRead(xPin);
   yFiltered = analogRead(yPin);
   zFiltered = analogRead(zPin);
 
+  //WIFI
+  Wire.begin();
+  //Connect to wifi
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
   }
   Serial.println("Connected to WiFi");
-  timeClient.begin();
 
 }
 
 void loop() 
 {
-  gas();
-  impact();
-  fsr();
-  // 获取当前时间
+  // gas();
+  // impact();
+  // fsr();
   unsigned long currentMillis = millis();
   // 检查是否到达上传数据的时间
   if (currentMillis - previousMillis >= interval) {
@@ -102,10 +91,10 @@ void loop()
 }
 
 void gas(){
-  gasdataC2H5OH = mics.getGasData(C2H5OH);
-  gasdataCO = mics.getGasData(CO);
-  gasdataCH4 = mics.getGasData(CH4);
-  //float gasdataC3H8 = mics.getGasData(C3H8);
+  float gasdataC2H5OH = mics.getGasData(C2H5OH);
+  float gasdataCO = mics.getGasData(CO);
+  float gasdataCH4 = mics.getGasData(CH4);
+  float gasdataC3H8 = mics.getGasData(C3H8);
   Serial.print("C2H5OH: ");
   Serial.print(gasdataC2H5OH,1);
   Serial.println(" PPM");
@@ -118,9 +107,9 @@ void gas(){
   Serial.print(gasdataCH4,1);
   Serial.println(" PPM");
 
-  // Serial.print("C3H8: ");
-  // Serial.print(gasdataC3H8,1);
-  // Serial.println(" PPM");
+  Serial.print("C3H8: ");
+  Serial.print(gasdataC3H8,1);
+  Serial.println(" PPM");
 }
 
 void impact(){
@@ -148,7 +137,7 @@ void impact(){
   Serial.print(" Z: "); Serial.println(zFiltered);
 
   // 计算加速度矢量的模
-  magnitude = sqrt(sq(xFiltered - 512) + sq(yFiltered - 512) + sq(zFiltered - 512));
+  float magnitude = sqrt(sq(xFiltered - 512) + sq(yFiltered - 512) + sq(zFiltered - 512));
   Serial.println(magnitude);
   // 检测撞击
   if (magnitude > 3000) { // 设定一个合理的阈值
@@ -161,50 +150,27 @@ void fsr(){
   int analogReading = analogRead(FORCE_SENSOR_PIN);
   Serial.print("Force sensor reading = ");
   Serial.print(analogReading); 
-  if (analogReading < 10){
+  if (analogReading < 10)       // from 0 to 9
     Serial.println(" -> no pressure");
     Wear = false;
-  }else{
-    Serial.println("Wearing detected");
-    Wear = true;
-  }       // from 0 to 9
-    
   // else if (analogReading < 200) // from 10 to 199
   //   Serial.println(" -> light touch");
   // else if (analogReading < 500) // from 200 to 499
   //   Serial.println(" -> light squeeze");
   // else if (analogReading < 800) // from 500 to 799
   //   Serial.println(" -> medium squeeze");
-    
+  else // from 800 to 1023
+    Serial.println(" -> big squeeze");
+    Wear = true;
 }
 
 void senddata(){
   if(WiFi.status() == WL_CONNECTED){
     HTTPClient http;
-    timeClient.update();
-    unsigned long epochTime = timeClient.getEpochTime();
-    setTime(epochTime);
-    int timeOffset = 0;
-    if (isDST(day(), month(), weekday())) {
-      timeOffset = 3600;  // UTC +1 小时
-    }
-    timeClient.setTimeOffset(timeOffset);
-    char dateTimeStr[25];
-    sprintf(dateTimeStr, "%04d-%02d-%02dT%02d:%02d:%02dZ", year(), month(), day(), hour(), minute(), second());
-
-
     // Building a REST API URL for Firestore
     String url = "https://firestore.googleapis.com/v1/projects/" + String(projectID) + "/databases/(default)/documents/" + String(collection) + "?key=YOUR_API_KEY";
     // Build JSON data
-    // String jsonData = "{\"fields\": {
-    //   \"timestamp\": {\"timestampValue\": \"" + String(dateTimeStr) + "\"}, 
-    //   \"Heartrate\": {\"integerValue\": \"" + String(beatAvg) + "\"},
-    //   \"fsr\": {\"booleanValue\": \"" + String(Wear ? "true" : "false") + "\"},
-    //   \"impact\": {\"doubleValue\": \"" + String(magnitude) + "\"},
-    //   \"C2H5OH\": {\"doubleValue\": \"" + String(gasdataC2H5OH) + "\"},
-    //   \"CO\": {\"doubleValue\": \"" + String(gasdataCO) + "\"},
-    //   \"CH4\": {\"doubleValue\": \"" + String(gasdataCH4) + "\"}}}";
-      String jsonData = "{\"fields\": {\"timestamp\": {\"timestampValue\": \"" + String(dateTimeStr) + "\"}, \"fsr\": {\"booleanValue\": \"" + String(Wear ? "true" : "false") + "\"}, \"impact\": {\"doubleValue\": \"" + String(magnitude) + "\"}, \"C2H5OH\": {\"doubleValue\": \"" + String(gasdataC2H5OH) + "\"}, \"CO\": {\"doubleValue\": \"" + String(gasdataCO) + "\"}, \"CH4\": {\"doubleValue\": \"" + String(gasdataCH4) + "\"}}}";
+    String jsonData = "{\"fields\": {\"fsr\": {\"booleanValue\": \"" + String(Wear ? "true" : "false") + "\"}}}";
 
     http.begin(url);
     http.addHeader("Content-Type", "application/json");
@@ -224,17 +190,4 @@ void senddata(){
   }
 }
 
-bool isDST(int day, int month, int weekday) {
-    // 英国夏令时从三月最后一个周日开始到十月最后一个周日结束
-    if (month < 3 || month > 10) return false; // 一月, 二月, 十一月和十二月
-    if (month > 3 && month < 10) return true; // 四月到九月
 
-    int previousSunday = day - weekday;
-
-    // 在三月，我们在最后一个周日过后是夏令时
-    if (month == 3) return previousSunday >= 25;
-    // 在十月，我们在最后一个周日之前仍然是夏令时
-    if (month == 10) return previousSunday < 25;
-
-    return false; // 应该不会发生
-}

@@ -1,14 +1,25 @@
+String receivedData = "";
+bool readingAvg = false;
+
 void setup() {
-  Serial.begin(115200);  // 初始化串口通信，波特率为9600
+  Serial1.begin(9600); // 初始化Serial1串行通信，波特率为9600
+  Serial.begin(9600);  // 初始化主串行通信，用于调试输出
 }
 
 void loop() {
-  if (Serial.available() >= sizeof(int)) {  // 检查是否有足够的数据可读
-    int beatAvg;
-    Serial.readBytes((char*)&beatAvg, sizeof(beatAvg));  // 读取传感器数据
-    // 在此处处理数据，例如，打印到串口监视器
-    Serial.print("Received sensor value: ");
-    Serial.println(beatAvg);
+  while (Serial1.available() > 0) {
+    char incomingByte = Serial1.read();
+    receivedData += incomingByte;
+
+    if (receivedData.endsWith(" AVG_END")) {
+      int avgStartIndex = receivedData.indexOf("AVG_START ");
+      if (avgStartIndex != -1) {
+        String avgValueStr = receivedData.substring(avgStartIndex + 10, receivedData.length() - 8);
+        int avgValue = avgValueStr.toInt();
+        Serial.print("Received Avg BPM: ");
+        Serial.println(avgValue);
+      }
+      receivedData = ""; // 重置接收缓冲区
+    }
   }
-  //delay(5000);
 }

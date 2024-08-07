@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Helmet Safety Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f9;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .data-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .data-item {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 10px;
+            width: 300px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .data-item span {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .data-item img {
+            width: 40px;
+            height: 40px;
+        }
+        .section-title {
+            margin-top: 20px;
+            font-size: 1.5em;
+        }
+    </style>
+</head>
+<body>
+    <h1>Helmet Safety Dashboard</h1>
+
+    <div class="section-title">Heart Rate Data</div>
+    <div id="heartRateData" class="data-container"></div>
+
+    <div class="section-title">Environmental Data</div>
+    <div id="environmentData" class="data-container"></div>
+
+    <!-- Firebase App (the core Firebase SDK) -->
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+    <!-- Firebase Firestore SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-firestore.js"></script>
+    <script>
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDQLBZquq18ScMUz-CusPv1LZtTwV4dJxA",
+            authDomain: "fir-flutter-codelab-a80ae.firebaseapp.com",
+            projectId: "fir-flutter-codelab-a80ae",
+            storageBucket: "fir-flutter-codelab-a80ae.appspot.com",
+            messagingSenderId: "226303980858",
+            appId: "1:226303980858:web:b887d62cba3c22fff34c03"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Function to fetch heart rate data
+        async function fetchHeartRateData() {
+            const heartRateContainer = document.getElementById('heartRateData');
+            heartRateContainer.innerHTML = ''; // Clear previous data
+
+            const querySnapshot = await db.collection("Helmet-data").orderBy("timestamp").get();
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                const heartRateItem = document.createElement('div');
+                heartRateItem.className = 'data-item';
+                heartRateItem.innerHTML = `
+                    <img src="https://img.icons8.com/color/48/000000/heart-with-pulse.png" alt="Heart Rate Icon">
+                    <span>${data.Heartrate} bpm</span>
+                    <span>${new Date(data.timestamp.seconds * 1000).toLocaleString()}</span>
+                `;
+                heartRateContainer.appendChild(heartRateItem);
+            });
+        }
+
+        // Function to fetch environmental data
+        async function fetchEnvironmentData() {
+            const environmentContainer = document.getElementById('environmentData');
+            environmentContainer.innerHTML = ''; // Clear previous data
+
+            const querySnapshot = await db.collection("Helmet-data-3in1").orderBy("timestamp").get();
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                const environmentItem = document.createElement('div');
+                environmentItem.className = 'data-item';
+                environmentItem.innerHTML = `
+                    <div>
+                        <p>C2H5OH: ${data.C2H5OH}</p>
+                        <p>CH4: ${data.CH4}</p>
+                        <p>CO: ${data.CO}</p>
+                        <p>FSR: ${data.fsr}</p>
+                        <p>Impact: ${data.impact}</p>
+                    </div>
+                    <span>${new Date(data.timestamp.seconds * 1000).toLocaleString()}</span>
+                `;
+                environmentContainer.appendChild(environmentItem);
+            });
+        }
+
+        // Fetch data initially and set interval to update every minute
+        fetchHeartRateData();
+        fetchEnvironmentData();
+        setInterval(() => {
+            fetchHeartRateData();
+            fetchEnvironmentData();
+        }, 60000); // Update every minute
+    </script>
+</body>
+</html>

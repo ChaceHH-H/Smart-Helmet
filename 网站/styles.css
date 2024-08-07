@@ -1,0 +1,97 @@
+body {
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f0f4f7;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #333;
+}
+
+.dashboard {
+    width: 90%;
+    max-width: 1200px;
+    margin: 20px auto;
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    box-sizing: border-box; /* Ensure padding is included in the width */
+}
+
+header {
+    background-color: #4a90e2;
+    width: 100%;
+    padding: 20px;
+    text-align: center;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    box-sizing: border-box; /* Ensure padding is included in the width */
+}
+
+header h1 {
+    font-size: 2em;
+    margin: 0;
+    color: #fff;
+}
+
+main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.chart-container {
+    background-color: #e8f4fb;
+    border-radius: 10px;
+    padding: 20px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    width: 100%;
+}
+
+.data-item {
+    background-color: #4a90e2;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    text-align: center;
+    transition: background-color 0.3s, transform 0.3s;
+    color: #fff;
+}
+
+.data-item:hover {
+    background-color: #6ab0f2;
+    transform: translateY(-5px);
+}
+
+.data-item span {
+    display: block;
+    font-size: 18px;
+    margin-top: 10px;
+}
+
+.data-item img, .data-item i {
+    width: 40px;
+    height: 40px;
+    margin-bottom: 10px;
+}
+
+#heartRateCanvas {
+    border: 1px solid #ccc;
+    background-color: #fff;
+}
+
+.data-item i {
+    font-size: 40px;
+}

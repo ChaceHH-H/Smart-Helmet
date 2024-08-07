@@ -5,7 +5,7 @@
 #include <WiFiUdp.h>
 #include <Wire.h>
 #include <TimeLib.h>
-#define CALIBRATION_TIME   1
+#define CALIBRATION_TIME   3
 #define ADC_PIN   A0
 #define POWER_PIN 2
 #define FORCE_SENSOR_PIN A7 
@@ -51,7 +51,7 @@ void setup()
 {
   Serial.begin(115200);
 
-  while(!Serial);
+  //while(!Serial);
   while(!mics.begin()){
     Serial.println("NO Deivces !");
     delay(1000);
@@ -118,9 +118,6 @@ void gas(){
   Serial.print(gasdataCH4,1);
   Serial.println(" PPM");
 
-  // Serial.print("C3H8: ");
-  // Serial.print(gasdataC3H8,1);
-  // Serial.println(" PPM");
 }
 
 void impact(){
@@ -161,7 +158,7 @@ void fsr(){
   int analogReading = analogRead(FORCE_SENSOR_PIN);
   Serial.print("Force sensor reading = ");
   Serial.print(analogReading); 
-  if (analogReading < 10){
+  if (analogReading < 30){
     Serial.println(" -> no pressure");
     Wear = false;
   }else{
@@ -169,12 +166,6 @@ void fsr(){
     Wear = true;
   }       // from 0 to 9
     
-  // else if (analogReading < 200) // from 10 to 199
-  //   Serial.println(" -> light touch");
-  // else if (analogReading < 500) // from 200 to 499
-  //   Serial.println(" -> light squeeze");
-  // else if (analogReading < 800) // from 500 to 799
-  //   Serial.println(" -> medium squeeze");
     
 }
 
@@ -186,7 +177,7 @@ void senddata(){
     setTime(epochTime);
     int timeOffset = 0;
     if (isDST(day(), month(), weekday())) {
-      timeOffset = 3600;  // UTC +1 小时
+      timeOffset = 0;  // UTC +1 小时
     }
     timeClient.setTimeOffset(timeOffset);
     char dateTimeStr[25];
