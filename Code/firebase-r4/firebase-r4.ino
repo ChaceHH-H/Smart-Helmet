@@ -46,8 +46,11 @@ const char* collection2 = "Helmet-data-impact"; // Collection name
 WiFiSSLClient wifiClient;
 HttpClient client = HttpClient(wifiClient, host, 443);
 
-unsigned long previousMillis = 0;  // 上次上传数据的时间
-const long interval = 10000;       // 10秒钟的间隔
+unsigned long previousMillis = 0;  
+const long interval = 30000;       
+
+unsigned long gaspreviousMillis = 0;    
+const unsigned long gasinterval = 10000; 
 
 
 String receivedData = "";
@@ -138,8 +141,8 @@ void loop() {
     // 保存当前时间
     previousMillis = currentMillis;
     // 上传数据到Firebase
-    // timeClient.update();
-    // senddata();
+    timeClient.update();
+    senddata();
     
     // timeClient.update();
     // impactsenddata();
@@ -165,6 +168,12 @@ void gas(){
   if (gasdataC2H5OH >= 400 || C2H5OHalarm >= 50 || gasdataCH4 >= 5000) {
     setColor(255, 0, 0);
     tone(buzzerPin, 1000);
+    unsigned long currentMillis = millis();
+    if (currentMillis - gaspreviousMillis >= gasinterval) {
+      gaspreviousMillis = currentMillis; // 更新上次调用 senddata() 的时间
+      timeClient.update();
+      senddata();
+    }
   } else {
     setColor(0, 255, 0);
     noTone(buzzerPin);

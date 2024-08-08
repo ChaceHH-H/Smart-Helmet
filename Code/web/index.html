@@ -1,32 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-UTF-8">
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Helmet Safety Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 </head>
 <body>
     <div class="dashboard">
-        <header>
-            <h1>Helmet Safety Dashboard</h1>
-        </header>
         <main>
             <div class="chart-container">
-                <canvas id="heartRateCanvas" width="800" height="400"></canvas>
+                <canvas id="heartRateCanvas" width="600" height="300"></canvas>
             </div>
             <div class="grid-container" id="dataContainer">
                 <!-- Data items will be dynamically inserted here -->
             </div>
+            <div class="data-item" id="timestamp-card">
+                <i class="fas fa-clock"></i>
+                <span>Select Date:</span>
+                <input type="text" id="datePicker" onchange="fetchTimestamps()">
+                <span>Select Timestamp:</span>
+                <select id="timePicker" onchange="fetchDataByTimestamp()"></select>
+            </div>
         </main>
     </div>
 
-    <!-- Firebase App (the core Firebase SDK) -->
     <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
-    <!-- Firebase Firestore SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-firestore.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/en.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

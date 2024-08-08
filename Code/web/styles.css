@@ -17,23 +17,7 @@ body {
     border-radius: 10px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     padding: 20px;
-    box-sizing: border-box; /* Ensure padding is included in the width */
-}
-
-header {
-    background-color: #4a90e2;
-    width: 100%;
-    padding: 20px;
-    text-align: center;
-    border-radius: 10px;
-    margin-bottom: 20px;
-    box-sizing: border-box; /* Ensure padding is included in the width */
-}
-
-header h1 {
-    font-size: 2em;
-    margin: 0;
-    color: #fff;
+    box-sizing: border-box;
 }
 
 main {
@@ -49,7 +33,8 @@ main {
     padding: 20px;
     width: 100%;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    align-items: center;
     margin-bottom: 20px;
 }
 
@@ -68,6 +53,12 @@ main {
     text-align: center;
     transition: background-color 0.3s, transform 0.3s;
     color: #fff;
+    max-height: 200px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
 .data-item:hover {
@@ -82,8 +73,8 @@ main {
 }
 
 .data-item img, .data-item i {
-    width: 40px;
-    height: 40px;
+    width: 30px;
+    height: 30px;
     margin-bottom: 10px;
 }
 
@@ -93,5 +84,54 @@ main {
 }
 
 .data-item i {
-    font-size: 40px;
+    font-size: 30px;
+}
+
+.impact-list {
+    text-align: left;
+    padding: 10px;
+    background-color: #6ab0f2;
+    border-radius: 10px;
+    color: #fff;
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+.impact-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 16px;
+}
+
+.impact-item span:first-child {
+    flex: 1;
+    margin-right: 10px;
+    font-size: 12px;
+    text-align: right;
+}
+
+.impact-item span:last-child {
+    flex: 2;
+    font-size: 16px;
+    text-align: left;
+}
+
+.timestamp-card {
+    background-color: #4a90e2;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    text-align: center;
+    transition: background-color 0.3s, transform 0.3s;
+    color: #fff;
+    max-height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+    width: 100%;
+    box-sizing: border-box;
 }
