@@ -5,20 +5,12 @@
 #include <NTPClient.h>
 #include <WiFiUdp.h>
 #include <TimeLib.h>
-
+// Define gas sensor
 #include "DFRobot_MICS.h"
 #define CALIBRATION_TIME   3
 #define ADC_PIN   A0
 #define POWER_PIN 2
-#define FORCE_SENSOR_PIN A4 
 DFRobot_MICS_ADC mics(/*adcPin*/ADC_PIN, /*powerPin*/POWER_PIN);
-const int xPin = A1;
-const int yPin = A2;
-const int zPin = A3;
-
-int prevX = 0, prevY = 0, prevZ = 0;
-int threshold = 200;  // 根据数据分析，设置阈值
-
 float gasdataC2H5OH = 0;
 bool C2H5OHalarm= false;
 float gasdataCO = 0;
@@ -26,10 +18,18 @@ bool CH4alarm= false;
 float gasdataCH4 = 0;
 bool COalarm= false;
 
+#define FORCE_SENSOR_PIN A4 
 float magnitude = 0;
 bool Beinghit= false;
 bool Wear= false;
-////
+
+// Define accelerometer sensor
+const int xPin = A1;
+const int yPin = A2;
+const int zPin = A3;
+int prevX = 0, prevY = 0, prevZ = 0;
+int threshold = 200;  // Threshold
+
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP, "pool.ntp.org");
 const char* ssid = "mate40pro";
@@ -40,15 +40,15 @@ const char* host = "firestore.googleapis.com";
 const char* apiKey = "AIzaSyDQLBZquq18ScMUz-CusPv1LZtTwV4dJxA";
 const char* projectId = "fir-flutter-codelab-a80ae";
 const char* collection1 = "Helmet-data-3in1"; // Collection name
-const char* collection2 = "Helmet-data-impact"; // Collection name
+const char* collection2 = "Helmet-data-impact"; 
 
 // HTTP client
 WiFiSSLClient wifiClient;
 HttpClient client = HttpClient(wifiClient, host, 443);
 
+//Defining time intervals
 unsigned long previousMillis = 0;  
-const long interval = 30000;       
-
+const long interval = 15000;       
 unsigned long gaspreviousMillis = 0;    
 const unsigned long gasinterval = 10000; 
 
@@ -64,7 +64,7 @@ int buzzerPin = 13;
 
 void setup() {
   Serial.begin(115200);
-  Serial1.begin(115200);
+  Serial1.begin(115200); // Initialize the second serial port for communication with other Arduino
 
   pinMode(redPin, OUTPUT);
   pinMode(greenPin, OUTPUT);
@@ -86,7 +86,7 @@ void setup() {
   // Initialize NTP client
   timeClient.begin();
 
-  
+  // Initialize the gas sensor
   while(!mics.begin()){
     Serial.println("NO Deivces !");
     delay(1000);
@@ -104,11 +104,10 @@ void setup() {
     delay(1000);
   }
 
-  // Initialize sensor
+  // Initialize accelerometer sensor
   pinMode(xPin, INPUT);
   pinMode(yPin, INPUT);
   pinMode(zPin, INPUT);
-    // 初始化先前的加速度值
   prevX = analogRead(xPin);
   prevY = analogRead(yPin);
   prevZ = analogRead(zPin);
@@ -116,9 +115,11 @@ void setup() {
 
 void loop() {
 
-  fsr();
-  gas();
-  impact();
+  fsr(); // Detect helmet wearing status
+  gas(); // Detect gas concentration
+  impact(); // Detect impact events
+
+  // Process the heart rate data received from the serial port
   while (Serial1.available() > 0) {
     char incomingByte = Serial1.read();
     receivedData += incomingByte;
@@ -131,29 +132,24 @@ void loop() {
         Serial.print("Received Avg BPM: ");
         Serial.println(avgbpm);
       }
-      receivedData = ""; // 重置接收缓冲区
+      receivedData = ""; 
     }
   }
-    //获取当前时间
+    // Check if data needs to be uploaded
   unsigned long currentMillis = millis();
-  // 检查是否到达上传数据的时间
   if (currentMillis - previousMillis >= interval) {
-    // 保存当前时间
     previousMillis = currentMillis;
-    // 上传数据到Firebase
     timeClient.update();
     senddata();
-    
-    // timeClient.update();
-    // impactsenddata();
   }
 }
 
 void gas(){
+  // Read gas sensor data
   gasdataC2H5OH = mics.getGasData(C2H5OH);
   gasdataCO = mics.getGasData(CO);
   gasdataCH4 = mics.getGasData(CH4);
-  //float gasdataC3H8 = mics.getGasData(C3H8);
+  // Print gas concentration information
   Serial.print("C2H5OH: ");
   Serial.print(gasdataC2H5OH,1);
   Serial.println(" PPM");
@@ -170,7 +166,7 @@ void gas(){
     tone(buzzerPin, 1000);
     unsigned long currentMillis = millis();
     if (currentMillis - gaspreviousMillis >= gasinterval) {
-      gaspreviousMillis = currentMillis; // 更新上次调用 senddata() 的时间
+      gaspreviousMillis = currentMillis; 
       timeClient.update();
       senddata();
     }
@@ -197,26 +193,26 @@ void gas(){
 }
 
 void impact(){
+  // Read the current value of the acceleration sensor
   int x = analogRead(xPin);
   int y = analogRead(yPin);
   int z = analogRead(zPin);
 
-  // 计算当前加速度值与先前值的差值
+  // Calculate the difference between the current value and the previous value
   int deltaX = abs(x - prevX);
   int deltaY = abs(y - prevY);
   int deltaZ = abs(z - prevZ);
 
-  // 更新先前的加速度值
+  // Update the previous value of the accelerometer
   prevX = x;
   prevY = y;
   prevZ = z;
 
-  // 打印加速度传感器的变化量
   Serial.print("Delta X: "); Serial.print(deltaX);
   Serial.print(" Delta Y: "); Serial.print(deltaY);
   Serial.print(" Delta Z: "); Serial.println(deltaZ);
   
-  // 检测加速度变化量是否超过阈值
+  // Check whether the acceleration change exceeds the threshold
   if (deltaX > threshold || deltaY > threshold || deltaZ > threshold) {
     Serial.println("Impact detected!");
     Beinghit=true;
@@ -237,7 +233,7 @@ void fsr(){
   }else{
     Serial.println("Wearing detected");
     Wear = true;
-  }       // from 0 to 9
+  }      
     
     
 }
@@ -248,35 +244,34 @@ void senddata() {
     timeClient.update();
     unsigned long epochTime = timeClient.getEpochTime();
     setTime(epochTime);
-    // 检查是否为夏令时期间
     int timeOffset = 0;
     if (isDST(day(), month(), weekday())) {
-      timeOffset = 0;  // UTC +1 小时
+      timeOffset = 0;  
     }
     timeClient.setTimeOffset(timeOffset);
 
+    //Format timestamp
     char dateTimeStr[25];
     sprintf(dateTimeStr, "%04d-%02d-%02dT%02d:%02d:%02dZ", year(), month(), day(), hour(), minute(), second());
 
-    // Building a REST API URL for Firestore
+    // Build the REST API URL to send to Firebase
     String url = "https://firestore.googleapis.com/v1/projects/" + String(projectId) + "/databases/(default)/documents/" + String(collection1) + "?key=" + apiKey;
 
     // Build JSON data
     StaticJsonDocument<200> doc;
-    doc["fields"]["timestamp"]["timestampValue"] = dateTimeStr;  // 当前时间戳
-    doc["fields"]["fsr"]["booleanValue"] = Wear;  // 
-    // doc["fields"]["impactmagnitude"]["doubleValue"] = magnitude;  // 
-    // doc["fields"]["impact"]["booleanValue"] = Beinghit;  // 
-    doc["fields"]["C2H5OH"]["doubleValue"] = gasdataC2H5OH;  // 
-    doc["fields"]["C2H5OHalarm"]["booleanValue"] = C2H5OHalarm;
-    doc["fields"]["CH4"]["doubleValue"] = gasdataCH4;  // 
+    doc["fields"]["timestamp"]["timestampValue"] = dateTimeStr;  
+    doc["fields"]["fsr"]["booleanValue"] = Wear;  
+    doc["fields"]["C2H5OH"]["doubleValue"] = gasdataC2H5OH;  
+    doc["fields"]["C2H5OHalarm"]["booleanValue"] = C2H5OHalarm;  
+    doc["fields"]["CH4"]["doubleValue"] = gasdataCH4;  /
     doc["fields"]["CH4alarm"]["booleanValue"] = CH4alarm;
-    doc["fields"]["CO"]["doubleValue"] = gasdataCO;  // 
+    doc["fields"]["CO"]["doubleValue"] = gasdataCO;   
     doc["fields"]["COalarm"]["booleanValue"] = COalarm;
-    doc["fields"]["avgbpm"]["integerValue"] = avgbpm;  // 
+    doc["fields"]["avgbpm"]["integerValue"] = avgbpm;  
     String jsonData;
     serializeJson(doc, jsonData);
 
+    // Send HTTP POST request
     client.beginRequest();
     client.post(url);
     client.sendHeader("Content-Type", "application/json");
@@ -285,7 +280,6 @@ void senddata() {
     client.print(jsonData);
     client.endRequest();
 
-    // Get the response
     int statusCode = client.responseStatusCode();
     String response = client.responseBody();
 
@@ -301,11 +295,11 @@ void senddata() {
 
 void impactsenddata() {
   if (WiFi.status() == WL_CONNECTED) {
-    // Get current timestamp
+    
     timeClient.update();
     unsigned long epochTime = timeClient.getEpochTime();
     setTime(epochTime);
-    // 检查是否为夏令时期间
+  
     int timeOffset = 0;
     if (isDST(day(), month(), weekday())) {
       timeOffset = 0;  // UTC +1 小时
@@ -315,10 +309,10 @@ void impactsenddata() {
     char dateTimeStr[25];
     sprintf(dateTimeStr, "%04d-%02d-%02dT%02d:%02d:%02dZ", year(), month(), day(), hour(), minute(), second());
 
-    // Building a REST API URL for Firestore
+    
     String url = "https://firestore.googleapis.com/v1/projects/" + String(projectId) + "/databases/(default)/documents/" + String(collection2) + "?key=" + apiKey;
 
-    // Build JSON data
+   
     StaticJsonDocument<200> doc;
     doc["fields"]["timestamp"]["timestampValue"] = dateTimeStr;  
     doc["fields"]["impact"]["booleanValue"] = Beinghit;   
@@ -333,7 +327,6 @@ void impactsenddata() {
     client.print(jsonData);
     client.endRequest();
 
-    // Get the response
     int statusCode = client.responseStatusCode();
     String response = client.responseBody();
 
@@ -350,14 +343,9 @@ void impactsenddata() {
 bool isDST(int day, int month, int weekday) {
     if (month < 3 || month > 10) return false; 
     if (month > 3 && month < 10) return true; 
-
     int previousSunday = day - weekday;
-
-    
     if (month == 3) return previousSunday >= 25;
-    
     if (month == 10) return previousSunday < 25;
-
     return false; 
 }
 
@@ -367,3 +355,4 @@ void setColor(int redValue, int greenValue, int blueValue) {
   analogWrite(greenPin, 255 - greenValue);
   analogWrite(bluePin, 255 - blueValue);
 }
+
