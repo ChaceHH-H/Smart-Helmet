@@ -37,3 +37,4 @@ Smart safety helmets: Improving miner safety by integrating vital signs and envi
 - Gas sensor preheating: When the LED is yellow, wait for 3 minutes to preheat, and turn green to indicate that the preheating is complete.
 - Wearing the helmet: Wear the helmet correctly and then try each function.
 - View data: Open the web interface to view real-time data.
+![Data Web](https://github.com/ChaceHH-H/Image/blob/main/%E5%B1%8F%E5%B9%95%E6%88%AA%E5%9B%BE%202024-08-11%20205336.png)
