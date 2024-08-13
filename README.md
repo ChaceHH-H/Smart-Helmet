@@ -11,7 +11,7 @@ Smart safety helmets: Improving miner safety by integrating vital signs and envi
 - MAX30102 heart rate sensor
 - MICS-5524 gas sensor
 - GY-61 ADXL335 accelerometer
-- DF9-40 High Precise Resistance pressure sensor
+- DF9-40 High Precise Resistance
 - RGB LED
 - Buzzer
 - 9V battery
