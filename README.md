@@ -24,3 +24,16 @@ Smart safety helmets: Improving miner safety by integrating vital signs and envi
 ### Schematic
 ![Schematic](https://github.com/ChaceHH-H/Image/blob/main/helmet_bb.png)
 ![Schematic](https://github.com/ChaceHH-H/Image/blob/main/%E5%A4%B4%E7%9B%941.jpg)
+### How to get started
+- Install all the hardware according to the schematic.
+- Open Arduino IDE and install the required libraries
+- Upload HeartRate-r3.ino and helmet-r4.ino to the corresponding Arduino board.
+- Configure Firebase, create a Firebase project and enable Firestore database.
+- In the helmet-r4.ino file, update the Firebase API Key and project ID.
+- Open the web dashboard to view the data.
+## User Guide
+- Start the device: Make sure all sensors are connected correctly and turn on the power switch of the battery compartment.
+- Wi-Fi connection: Connect to wifi when the LED light is white.
+- Gas sensor preheating: When the LED is yellow, wait for 3 minutes to preheat, and turn green to indicate that the preheating is complete.
+- Wearing the helmet: Wear the helmet correctly and then try each function.
+- View data: Open the web interface to view real-time data.
